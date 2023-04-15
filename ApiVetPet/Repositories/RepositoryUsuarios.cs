@@ -1,0 +1,131 @@
+﻿using Microsoft.EntityFrameworkCore;
+using ApiVetPet.Data;
+using System.Data;
+using Microsoft.Data.SqlClient;
+using NugetVetPet.Models;
+
+#region TABLES
+
+//create table SERVICIOS (
+//IDSERVICIO int primary key,
+//NOMBRE nvarchar(50),
+//DESCRIPCION nvarchar(500),
+//)
+
+//create table VACUNAS(
+//  IDVACUNA int primary key, 
+//  IDUSUARIO int, 
+//  IDMASCOTA int, 
+//  NVACUNA NVARCHAR(50),
+//  LOTE NVARCHAR(50), 
+//    FECHA DATE
+//)
+
+//create table MASCOTAS(
+//	IDMASCOTA int primary key,
+//    NMASCOTA nvarchar(50),
+//	EDAD int,
+//	PESO int,
+//	RAZA nvarchar(50),
+//	IDUSUARIO int
+//)
+
+//create table CITAS(
+//	IDCITA int primary key,
+//    IDUSUARIO int,
+//    IDMASCOTA int,
+//    TIPO_CITA NVARCHAR(50),
+//	DIA_CITA DATETIME
+//)
+
+//CREATE TABLE PRUEBAS(
+//IDPRUEBA INT,
+//IDUSUARIO INT,
+//IDMASCOTA INT,
+//NAME_FILE NVARCHAR(MAX),
+//DESCRIPCION NVARCHAR(150),
+//FECHA DATE
+//)
+
+//CREATE TABLE TRATAMIENTOS(
+//IDTRATAMIENTO INT PRIMARY KEY,
+//IDUSUARIO INT,
+//IDMASCOTA INT,
+//NOMBREMEDICACION NVARCHAR(75),
+//DOSIS NVARCHAR(20),
+//DURACION NVARCHAR(50),
+//DESCRIPCION NVARCHAR(100)
+//)
+
+//create TABLE USUARIOS (
+//	IDUSUARIO INT PRIMARY KEY,
+//    APODO NVARCHAR(50) NOT NULL,
+//    NOMBRE NVARCHAR(50),
+//    TELEFONO NVARCHAR(15),
+//	  EMAIL NVARCHAR(150) UNIQUE NOT NULL,
+//    SALT NVARCHAR(MAX) NOT NULL,
+//    PASS NVARCHAR(50) NOT NULL,
+//    PASS_CIFRADA NVARCHAR(MAX) NOT NULL,
+//    IMAGEN NVARCHAR(MAX) DEFAULT 'default_image.jpg'
+//)
+
+#endregion
+
+#region VISTAS
+
+//CREATE VIEW V_TRATAMIENTOS
+//AS
+//	SELECT IDTRATAMIENTO, TRATAMIENTOS.IDUSUARIO, TRATAMIENTOS.IDMASCOTA, NMASCOTA, NOMBREMEDICACION, DOSIS, DURACION, DESCRIPCION
+//	FROM TRATAMIENTOS
+//	LEFT JOIN MASCOTAS
+//	ON TRATAMIENTOS.IDMASCOTA = MASCOTAS.IDMASCOTA
+//GO
+
+//CREATE VIEW V_PRUEBAS
+//AS
+//	SELECT IDPRUEBA, PRUEBAS.IDUSUARIO, PRUEBAS.IDMASCOTA, NMASCOTA, NAME_FILE, DESCRIPCION, FECHA
+//	FROM PRUEBAS
+//	LEFT JOIN MASCOTAS
+//	ON PRUEBAS.IDMASCOTA = MASCOTAS.IDMASCOTA
+//GO
+
+//create VIEW V_VACUNAS
+//as
+//	select IDVACUNA, vacunas.IDUSUARIO, vacunas.IDMASCOTA, NMASCOTA, NVACUNA, LOTE, FECHA, mascotas.IMAGEN
+//	from vacunas 
+//	left join mascotas
+//	on vacunas.idmascota = mascotas.idmascota
+//go
+
+#endregion
+
+#region PROCEDURES
+
+//CREATE PROCEDURE SP_VACUNAS_PAGINAR
+//(@POSICION INT, @IDUSUARIO INT)
+//AS
+//    SELECT POSICION, IDVACUNA, IDUSUARIO, IDMASCOTA, NMASCOTA, NVACUNA, LOTE, FECHA, IMAGEN FROM
+//        (SELECT CAST(
+//            ROW_NUMBER() OVER(ORDER BY FECHA DESC) AS INT) AS POSICION,
+//            IDVACUNA, IDUSUARIO, IDMASCOTA, NMASCOTA, NVACUNA, LOTE, FECHA, IMAGEN
+//        FROM V_VACUNAS
+//        WHERE IDUSUARIO = @IDUSUARIO) AS QUERY
+//    WHERE QUERY.POSICION >= @POSICION AND QUERY.POSICION < (@POSICION + 5)
+//GO
+
+#endregion
+
+namespace ApiVetPet.Repositories
+{
+    public class RepositoryUsuarios
+    {
+        private UsuariosContext context;
+
+        public RepositoryUsuarios(UsuariosContext context)
+        {
+            this.context = context;
+        }
+     
+
+    }
+}
