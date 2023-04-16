@@ -125,7 +125,231 @@ namespace ApiVetPet.Repositories
         {
             this.context = context;
         }
-     
+
+
+        #region FORMS
+
+        public async Task CreateCita(int idusuario, int idmascota, string tipo, DateTime fecha)
+        {
+            Cita cita = new Cita();
+            cita.IdCita = this.GetMaxIdCita();
+            cita.TipoCita = tipo;
+            cita.IdMascota = idmascota;
+            cita.IdUsuario = idusuario;
+            cita.DiaCita = fecha;
+
+            this.context.Citas.Add(cita);
+            await this.context.SaveChangesAsync();
+        }
+
+        public async Task<Usuario> UpdateUsuario(int idusuario, string nombre, string apodo,
+            string email, string telefono)
+        {
+            Usuario user = await FindUserAsync(idusuario);
+            user.Nombre = nombre;
+            user.Apodo = apodo;
+            user.Email = email;
+            user.Telefono = telefono;
+
+            this.context.Usuarios.Update(user);
+            await this.context.SaveChangesAsync();
+            return user;
+        }
+
+        public async Task<Usuario> UpdateUsuario(int idusuario, string nombre, string apodo,
+            string email, string telefono, string fileName)
+        {
+            Usuario user = await FindUserAsync(idusuario);
+            user.Nombre = nombre;
+            user.Apodo = apodo;
+            user.Email = email;
+            user.Telefono = telefono;
+            user.Imagen = fileName;
+
+            this.context.Usuarios.Update(user);
+            await this.context.SaveChangesAsync();
+            return user;
+        }
+
+
+        public async Task<Mascota> UpdateMascota(int idusuario, int idmascota, string nombre, string raza,
+            string tipo, int peso, DateTime fechanacimiento)
+        {
+            Mascota mascota = await FindPetAsync(idmascota);
+            mascota.Nombre = nombre;
+            mascota.Raza = raza;
+            mascota.Tipo = tipo;
+            mascota.Peso = peso;
+            mascota.Fecha_Nacimiento = fechanacimiento;
+
+            this.context.Mascotas.Update(mascota);
+            await this.context.SaveChangesAsync();
+            return mascota;
+        }
+
+        public async Task<Mascota> UpdateMascota(int idusuario, int idmascota, string nombre, string raza,
+            string tipo, int peso, DateTime fechanacimiento, string fileName)
+        {
+            Mascota mascota = await FindPetAsync(idmascota);
+            mascota.Nombre = nombre;
+            mascota.Raza = raza;
+            mascota.Tipo = tipo;
+            mascota.Peso = peso;
+            mascota.Fecha_Nacimiento = fechanacimiento;
+            mascota.Imagen = fileName;
+
+            this.context.Mascotas.Update(mascota);
+            await this.context.SaveChangesAsync();
+            return mascota;
+        }
+
+        #endregion
+
+
+        #region FINDS
+
+        public async Task<Usuario> FindUserAsync(int idusuario)
+        {
+            return await
+                this.context.Usuarios
+                .FirstOrDefaultAsync(x => x.IdUsuario == idusuario);
+        }
+
+        public async Task<Mascota> FindPetAsync(int idmascota)
+        {
+            return await
+                this.context.Mascotas
+                .FirstOrDefaultAsync(x => x.IdMascota == idmascota);
+        }
+
+        #endregion
+
+
+        #region GETS
+
+        private int GetMaxIdUsuario()
+        {
+            if (this.context.Usuarios.Count() == 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return this.context.Usuarios.Max(z => z.IdUsuario) + 1;
+            }
+        }
+
+        private int GetMaxIdCita()
+        {
+            if (this.context.Citas.Count() == 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return this.context.Citas.Max(z => z.IdCita) + 1;
+            }
+        }
+
+
+        public int GetNumeroVacunas(int idusuario)
+        {
+            return this.context.Vacunas.
+                Where(z => z.IdUsuario == idusuario).Count();
+        }
+
+        public int GetNumeroProcedimientos(int idusuario)
+        {
+            return this.context.Procedimientos.
+                Where(z => z.IdUsuario == idusuario).Count();
+        }
+
+
+        public List<Mascota> GetMascotas(int idusuario)
+        {
+            List<Mascota> mascotas = this.context.Mascotas.Where(x => x.IdUsuario == idusuario).ToList();
+            return mascotas;
+        }
+
+        public List<Tratamiento> GetTratamientos(int idusuario)
+        {
+            List<Tratamiento> tratamientos = this.context.Tratamientos.Where(x => x.IdUsuario == idusuario).ToList();
+            return tratamientos;
+        }
+
+        public List<Vacuna> GetVacunas(int idusuario)
+        {
+            List<Vacuna> vacunas = this.context.Vacunas.Where(x => x.IdUsuario == idusuario).OrderByDescending(x => x.Fecha).ToList();
+            return vacunas;
+        }
+
+        public List<Cita> GetCitas()
+        {
+            List<Cita> citas = this.context.Citas.ToList();
+            return citas;
+        }
+
+        public List<Evento> GetEventos(int idusuario)
+        {
+            List<Evento> eventos = this.context.Eventos.Where(x => x.resourceid == idusuario).ToList();
+            return eventos;
+        }
+
+        public List<Prueba> GetPruebas(int idusuario)
+        {
+            List<Prueba> pruebas = this.context.Pruebas.Where(x => x.IdUsuario == idusuario).OrderByDescending(x => x.Fecha).ToList();
+            return pruebas;
+        }
+
+
+        public async Task<List<Vacuna>>
+        GetVacunasPaginar(int posicion, int idusuario)
+        {
+            string sql =
+                "SP_VACUNAS_PAGINAR @POSICION, @IDUSUARIO";
+            SqlParameter pamposicion =
+                new SqlParameter("@POSICION", posicion);
+            SqlParameter pamidusuario =
+                new SqlParameter("@IDUSUARIO", idusuario);
+
+            var consulta =
+                this.context.Vacunas.FromSqlRaw(sql, pamposicion, pamidusuario);
+            List<Vacuna> vacunas = await consulta.ToListAsync();
+
+            return vacunas;
+        }
+
+        public async Task<List<Procedimiento>>
+        GetProcedimientosPaginar(int posicion, int idusuario)
+        {
+            string sql =
+                "SP_PROCEDIMIENTOS_PAGINAR @POSICION, @IDUSUARIO";
+            SqlParameter pamposicion =
+                new SqlParameter("@POSICION", posicion);
+            SqlParameter pamidusuario =
+                new SqlParameter("@IDUSUARIO", idusuario);
+
+            var consulta =
+                this.context.Procedimientos.FromSqlRaw(sql, pamposicion, pamidusuario);
+            List<Procedimiento> procedimientos = await consulta.ToListAsync();
+
+            return procedimientos;
+        }
+
+
+        public List<Servicio> GetServicios()
+        {
+            List<Servicio> servicios = this.context.Servicios.ToList();
+            return servicios;
+        }
+
+        public List<FAQ> GetFAQs()
+        {
+            List<FAQ> faqs = this.context.FAQs.ToList();
+            return faqs;
+        }
+
+        #endregion
 
     }
 }
