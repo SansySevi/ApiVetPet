@@ -3,6 +3,7 @@ using ApiVetPet.Data;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using NugetVetPet.Models;
+using ApiVetPet.Helpers;
 
 #region TABLES
 
@@ -127,6 +128,93 @@ namespace ApiVetPet.Repositories
         }
 
 
+        #region Controller OAuth
+
+        public async Task<Usuario> ExisteUsuario(string username, string password)
+        {
+
+            Usuario user = new Usuario();
+
+            if (username.IndexOf("@") != -1)
+            {
+                user = await
+                this.context.Usuarios.FirstOrDefaultAsync(x => x.Email == username);
+
+            }
+            else
+            {
+                user = await
+                this.context.Usuarios.FirstOrDefaultAsync(x => x.Apodo == username);
+            }
+
+
+            if (user == null)
+            {
+                return null;
+            }
+            else
+            {
+                //RECUPERAMOS EL PASSWORD CIFRADO DE LA BBDD
+                byte[] passUsuario = user.Password;
+                //DEBEMOS CIFRAR DE NUEVO EL PASSWORD DE USUARIO
+                //JUNTO A SU SALT UTILIZANDO LA MISMA TECNICA
+                string salt = user.Salt;
+                byte[] temp =
+                    HelperCryptography.EncryptPassword(password, salt);
+
+                //COMPARAMOS LOS DOS ARRAYS
+                bool respuesta =
+                    HelperCryptography.CompareArrays(passUsuario, temp);
+                if (respuesta == true)
+                {
+                    //SON IGUALES
+                    return user;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+        }
+
+        private async Task<int> GetMaxUserAsync()
+        {
+            if (this.context.Usuarios.Count() == 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return await this.context.Usuarios.MaxAsync(x => x.IdUsuario) + 1;
+            }
+        }
+
+        public async Task RegisterAsync(Usuario user)
+        {
+            var Salt =
+               HelperCryptography.GenerateSalt();
+
+            Usuario newUser = new Usuario()
+            {
+                IdUsuario = await this.GetMaxUserAsync(),
+                Apodo = user.Apodo,
+                Nombre = user.Nombre,
+                Email = user.Email,
+                Telefono = user.Telefono,
+                Pass = user.Pass,
+                Salt = Salt,
+                Password = HelperCryptography.EncryptPassword(user.Pass, Salt),
+                Imagen = user.Imagen
+            };
+
+            this.context.Add(newUser);
+            await this.context.SaveChangesAsync();
+        }
+
+        #endregion
+
+
         #region FORMS
 
         public async Task CreateCita(int idusuario, int idmascota, string tipo, DateTime fecha)
@@ -227,18 +315,6 @@ namespace ApiVetPet.Repositories
 
         #region GETS
 
-        private int GetMaxIdUsuario()
-        {
-            if (this.context.Usuarios.Count() == 0)
-            {
-                return 1;
-            }
-            else
-            {
-                return this.context.Usuarios.Max(z => z.IdUsuario) + 1;
-            }
-        }
-
         private int GetMaxIdCita()
         {
             if (this.context.Citas.Count() == 0)
@@ -265,85 +341,50 @@ namespace ApiVetPet.Repositories
         }
 
 
-        public List<Mascota> GetMascotas(int idusuario)
+        public async Task<List<Mascota>> GetMascotas(int idusuario)
         {
             List<Mascota> mascotas = this.context.Mascotas.Where(x => x.IdUsuario == idusuario).ToList();
             return mascotas;
         }
 
-        public List<Tratamiento> GetTratamientos(int idusuario)
+        public async Task<List<Tratamiento>> GetTratamientos(int idusuario)
         {
             List<Tratamiento> tratamientos = this.context.Tratamientos.Where(x => x.IdUsuario == idusuario).ToList();
             return tratamientos;
         }
 
-        public List<Vacuna> GetVacunas(int idusuario)
+        public async Task<List<Vacuna>> GetVacunas(int idusuario)
         {
             List<Vacuna> vacunas = this.context.Vacunas.Where(x => x.IdUsuario == idusuario).OrderByDescending(x => x.Fecha).ToList();
             return vacunas;
         }
 
-        public List<Cita> GetCitas()
+        public async Task<List<Cita>> GetCitas()
         {
             List<Cita> citas = this.context.Citas.ToList();
             return citas;
         }
 
-        public List<Evento> GetEventos(int idusuario)
+        public async Task<List<Evento>> GetEventos(int idusuario)
         {
             List<Evento> eventos = this.context.Eventos.Where(x => x.resourceid == idusuario).ToList();
             return eventos;
         }
 
-        public List<Prueba> GetPruebas(int idusuario)
+        public async Task<List<Prueba>> GetPruebas(int idusuario)
         {
             List<Prueba> pruebas = this.context.Pruebas.Where(x => x.IdUsuario == idusuario).OrderByDescending(x => x.Fecha).ToList();
             return pruebas;
         }
 
 
-        public async Task<List<Vacuna>>
-        GetVacunasPaginar(int posicion, int idusuario)
-        {
-            string sql =
-                "SP_VACUNAS_PAGINAR @POSICION, @IDUSUARIO";
-            SqlParameter pamposicion =
-                new SqlParameter("@POSICION", posicion);
-            SqlParameter pamidusuario =
-                new SqlParameter("@IDUSUARIO", idusuario);
-
-            var consulta =
-                this.context.Vacunas.FromSqlRaw(sql, pamposicion, pamidusuario);
-            List<Vacuna> vacunas = await consulta.ToListAsync();
-
-            return vacunas;
-        }
-
-        public async Task<List<Procedimiento>>
-        GetProcedimientosPaginar(int posicion, int idusuario)
-        {
-            string sql =
-                "SP_PROCEDIMIENTOS_PAGINAR @POSICION, @IDUSUARIO";
-            SqlParameter pamposicion =
-                new SqlParameter("@POSICION", posicion);
-            SqlParameter pamidusuario =
-                new SqlParameter("@IDUSUARIO", idusuario);
-
-            var consulta =
-                this.context.Procedimientos.FromSqlRaw(sql, pamposicion, pamidusuario);
-            List<Procedimiento> procedimientos = await consulta.ToListAsync();
-
-            return procedimientos;
-        }
-
-
-        public List<Servicio> GetServicios()
+        public async Task<List<Servicio>> GetServicios()
         {
             List<Servicio> servicios = this.context.Servicios.ToList();
             return servicios;
         }
 
-        public List<FAQ> GetFAQs()
+        public async Task<List<FAQ>> GetFAQs()
         {
             List<FAQ> faqs = this.context.FAQs.ToList();
             return faqs;

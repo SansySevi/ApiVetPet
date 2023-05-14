@@ -1,4 +1,5 @@
 using ApiVetPet.Data;
+using ApiVetPet.Helpers;
 using ApiVetPet.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -6,8 +7,16 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSingleton<HelperCryptography>();
+builder.Services.AddSingleton<HelperOAuthToken>();
+
+HelperOAuthToken helper = new HelperOAuthToken(builder.Configuration);
+
+builder.Services.AddAuthentication(helper.GetAuthenticationOptions())
+    .AddJwtBearer(helper.GetJwtOptions());
+
 string connectionString =
-    builder.Configuration.GetConnectionString("SqlAzure");
+    builder.Configuration.GetConnectionString("SqlServer");
 builder.Services.AddTransient<RepositoryUsuarios>();
 builder.Services.AddDbContext<UsuariosContext>
     (options => options.UseSqlServer(connectionString));
@@ -19,8 +28,11 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Api Empleados Múltiples rutas",
-        Description = "Ejemplo con múltiples métodos GET y Route"
+        Title = "Api ",
+        Version = "v1"
+        ,
+        Description = "Api Proyecto Vet Pet"
+
     });
 });
 
@@ -29,17 +41,13 @@ app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint(url: "/swagger/v1/swagger.json"
-        , name: "Api Empleados v1");
+        , name: "Api Proyecto Vet Pet");
     options.RoutePrefix = "";
 });
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
 
-}
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
