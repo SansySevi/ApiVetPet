@@ -33,6 +33,20 @@ namespace ApiVetPet.Controllers
         }
 
         [Authorize]
+        [HttpPut]
+        public async Task<ActionResult> UpdateDepartamento
+            (Mascota mascota)
+        {
+            string jsonUser =
+                HttpContext.User.Claims.SingleOrDefault(z => z.Type == "USERDATA").Value;
+            Usuario user = JsonConvert.DeserializeObject<Usuario>(jsonUser);
+
+            await this.repo.UpdateMascota(mascota);
+            return Ok();
+        }
+
+
+        [Authorize]
         [HttpGet]
         [Route("[action]")]
         public async Task<ActionResult<List<Tratamiento>>> Tratamientos()

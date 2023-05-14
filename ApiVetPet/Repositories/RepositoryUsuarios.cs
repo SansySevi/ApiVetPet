@@ -217,42 +217,29 @@ namespace ApiVetPet.Repositories
 
         #region FORMS
 
-        public async Task CreateCita(int idusuario, int idmascota, string tipo, DateTime fecha)
+        public async Task CreateCita(Cita cita, int idUsuario)
         {
-            Cita cita = new Cita();
-            cita.IdCita = this.GetMaxIdCita();
-            cita.TipoCita = tipo;
-            cita.IdMascota = idmascota;
-            cita.IdUsuario = idusuario;
-            cita.DiaCita = fecha;
+            Cita newCita = new Cita()
+            {
+                IdCita = await this.GetMaxIdCita(),
+                TipoCita = cita.TipoCita,
+                IdMascota = cita.IdMascota,
+                IdUsuario = cita.IdUsuario,
+                DiaCita = cita.DiaCita
+            };
 
             this.context.Citas.Add(cita);
             await this.context.SaveChangesAsync();
         }
 
-        public async Task<Usuario> UpdateUsuario(int idusuario, string nombre, string apodo,
-            string email, string telefono)
+        public async Task<Usuario> UpdateUsuario(Usuario usuario)
         {
-            Usuario user = await FindUserAsync(idusuario);
-            user.Nombre = nombre;
-            user.Apodo = apodo;
-            user.Email = email;
-            user.Telefono = telefono;
-
-            this.context.Usuarios.Update(user);
-            await this.context.SaveChangesAsync();
-            return user;
-        }
-
-        public async Task<Usuario> UpdateUsuario(int idusuario, string nombre, string apodo,
-            string email, string telefono, string fileName)
-        {
-            Usuario user = await FindUserAsync(idusuario);
-            user.Nombre = nombre;
-            user.Apodo = apodo;
-            user.Email = email;
-            user.Telefono = telefono;
-            user.Imagen = fileName;
+            Usuario user = await FindUserAsync(usuario.IdUsuario);
+            user.Nombre = usuario.Nombre;
+            user.Apodo = usuario.Apodo;
+            user.Email = usuario.Email;
+            user.Telefono = usuario.Telefono;
+            user.Imagen = usuario.Imagen;
 
             this.context.Usuarios.Update(user);
             await this.context.SaveChangesAsync();
@@ -260,36 +247,22 @@ namespace ApiVetPet.Repositories
         }
 
 
-        public async Task<Mascota> UpdateMascota(int idusuario, int idmascota, string nombre, string raza,
-            string tipo, int peso, DateTime fechanacimiento)
+        public async Task<Mascota> UpdateMascota(Mascota mascota)
         {
-            Mascota mascota = await FindPetAsync(idmascota);
-            mascota.Nombre = nombre;
-            mascota.Raza = raza;
-            mascota.Tipo = tipo;
-            mascota.Peso = peso;
-            mascota.Fecha_Nacimiento = fechanacimiento;
 
-            this.context.Mascotas.Update(mascota);
+            Mascota pet = await FindPetAsync(mascota.IdMascota);
+            pet.Nombre = mascota.Nombre;
+            pet.Raza = mascota.Raza;
+            pet.Tipo = mascota.Tipo;
+            pet.Peso = mascota.Peso;
+            pet.Fecha_Nacimiento = mascota.Fecha_Nacimiento;
+            pet.Imagen = mascota.Imagen;
+
+            this.context.Mascotas.Update(pet);
             await this.context.SaveChangesAsync();
             return mascota;
         }
 
-        public async Task<Mascota> UpdateMascota(int idusuario, int idmascota, string nombre, string raza,
-            string tipo, int peso, DateTime fechanacimiento, string fileName)
-        {
-            Mascota mascota = await FindPetAsync(idmascota);
-            mascota.Nombre = nombre;
-            mascota.Raza = raza;
-            mascota.Tipo = tipo;
-            mascota.Peso = peso;
-            mascota.Fecha_Nacimiento = fechanacimiento;
-            mascota.Imagen = fileName;
-
-            this.context.Mascotas.Update(mascota);
-            await this.context.SaveChangesAsync();
-            return mascota;
-        }
 
         #endregion
 
@@ -315,7 +288,7 @@ namespace ApiVetPet.Repositories
 
         #region GETS
 
-        private int GetMaxIdCita()
+        private async Task<int> GetMaxIdCita()
         {
             if (this.context.Citas.Count() == 0)
             {
@@ -325,19 +298,6 @@ namespace ApiVetPet.Repositories
             {
                 return this.context.Citas.Max(z => z.IdCita) + 1;
             }
-        }
-
-
-        public int GetNumeroVacunas(int idusuario)
-        {
-            return this.context.Vacunas.
-                Where(z => z.IdUsuario == idusuario).Count();
-        }
-
-        public int GetNumeroProcedimientos(int idusuario)
-        {
-            return this.context.Procedimientos.
-                Where(z => z.IdUsuario == idusuario).Count();
         }
 
 

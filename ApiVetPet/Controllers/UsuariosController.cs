@@ -21,6 +21,19 @@ namespace ApiRepasoSegundoExam.Controllers
         }
 
         [Authorize]
+        [HttpPut]
+        public async Task<ActionResult> UpdateDepartamento
+            (Usuario usuario)
+        {
+            string jsonUser =
+                HttpContext.User.Claims.SingleOrDefault(z => z.Type == "USERDATA").Value;
+            Usuario user = JsonConvert.DeserializeObject<Usuario>(jsonUser);
+
+            await this.repo.UpdateUsuario(usuario);
+            return Ok();
+        }
+
+        [Authorize]
         [HttpGet]
         [Route("[action]")]
         public async Task<ActionResult<Usuario>> PerfilUsuario()
@@ -59,6 +72,19 @@ namespace ApiRepasoSegundoExam.Controllers
 
             List<Evento> eventos = await this.repo.GetEventos(user.IdUsuario);
             return eventos;
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("[action]")]
+        public async Task<ActionResult> SolicitarCita(Cita cita)
+        {
+            string jsonUser =
+                HttpContext.User.Claims.SingleOrDefault(z => z.Type == "USERDATA").Value;
+            Usuario user = JsonConvert.DeserializeObject<Usuario>(jsonUser);
+
+            await this.repo.CreateCita(cita, user.IdUsuario);
+            return Ok();
         }
 
     }
