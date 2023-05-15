@@ -85,5 +85,17 @@ namespace ApiVetPet.Controllers
             return pruebas;
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("[action]")]
+        public async Task<ActionResult<List<Procedimiento>>> Procedimientos()
+        {
+            string jsonUser =
+                HttpContext.User.Claims.SingleOrDefault(z => z.Type == "USERDATA").Value;
+            Usuario user = JsonConvert.DeserializeObject<Usuario>(jsonUser);
+
+            List<Procedimiento> procedimientos = await this.repo.GetProcedimientos(user.IdUsuario);
+            return procedimientos;
+        }
     }
 }

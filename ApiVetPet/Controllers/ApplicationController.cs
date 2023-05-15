@@ -35,5 +35,7 @@ namespace ApiVetPet.Controllers
             List<FAQ> fAQs = await this.repo.GetFAQs();
             return fAQs;
         }
+
+
     }
 }

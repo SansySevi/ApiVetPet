@@ -337,6 +337,12 @@ namespace ApiVetPet.Repositories
             return pruebas;
         }
 
+        public async Task<List<Procedimiento>> GetProcedimientos(int idusuario)
+        {
+            List<Procedimiento> procedimientos = this.context.Procedimientos.Where(x => x.IdUsuario == idusuario).OrderByDescending(x => x.Fecha).ToList();
+            return procedimientos;
+        }
+
 
         public async Task<List<Servicio>> GetServicios()
         {
