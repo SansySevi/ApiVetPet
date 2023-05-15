@@ -20,7 +20,7 @@ namespace ApiVetPet.Controllers
 
         [HttpGet]
         [Route("[action]")]
-        public async Task<ActionResult<List<Servicio>>> GetServicios()
+        public async Task<ActionResult<List<Servicio>>> Servicios()
         {
 
             List<Servicio> servicios = await this.repo.GetServicios();
@@ -29,7 +29,7 @@ namespace ApiVetPet.Controllers
 
         [HttpGet]
         [Route("[action]")]
-        public async Task<ActionResult<List<FAQ>>> GetFAQs()
+        public async Task<ActionResult<List<FAQ>>> FAQs()
         {
 
             List<FAQ> fAQs = await this.repo.GetFAQs();
