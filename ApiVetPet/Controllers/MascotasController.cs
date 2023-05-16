@@ -33,6 +33,19 @@ namespace ApiVetPet.Controllers
         }
 
         [Authorize]
+        [HttpGet]
+        [Route("[action]/{id}")]
+        public async Task<ActionResult<Mascota>> Mascota(int id)
+        {
+            string jsonUser =
+                HttpContext.User.Claims.SingleOrDefault(z => z.Type == "USERDATA").Value;
+            Usuario user = JsonConvert.DeserializeObject<Usuario>(jsonUser);
+
+            Mascota mascota = await this.repo.FindPetAsync(id);
+            return mascota;
+        }
+
+        [Authorize]
         [HttpPut]
         public async Task<ActionResult> UpdateDepartamento
             (Mascota mascota)

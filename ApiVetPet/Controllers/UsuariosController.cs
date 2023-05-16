@@ -83,7 +83,7 @@ namespace ApiRepasoSegundoExam.Controllers
                 HttpContext.User.Claims.SingleOrDefault(z => z.Type == "USERDATA").Value;
             Usuario user = JsonConvert.DeserializeObject<Usuario>(jsonUser);
 
-            await this.repo.CreateCita(cita, user.IdUsuario);
+            await this.repo.CreateCita(cita, cita.IdUsuario);
             return Ok();
         }
 

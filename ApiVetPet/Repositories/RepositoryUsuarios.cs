@@ -201,7 +201,7 @@ namespace ApiVetPet.Repositories
                 Apodo = user.Apodo,
                 Nombre = user.Nombre,
                 Email = user.Email,
-                Telefono = user.Telefono,
+                Telefono = "",
                 Pass = user.Pass,
                 Salt = Salt,
                 Password = HelperCryptography.EncryptPassword(user.Pass, Salt),
@@ -228,7 +228,7 @@ namespace ApiVetPet.Repositories
                 DiaCita = cita.DiaCita
             };
 
-            this.context.Citas.Add(cita);
+            this.context.Citas.Add(newCita);
             await this.context.SaveChangesAsync();
         }
 
