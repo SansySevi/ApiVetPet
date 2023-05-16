@@ -22,7 +22,7 @@ namespace ApiRepasoSegundoExam.Controllers
 
         [Authorize]
         [HttpPut]
-        public async Task<ActionResult> UpdateDepartamento
+        public async Task<ActionResult> UpdateUsurio
             (Usuario usuario)
         {
             string jsonUser =
